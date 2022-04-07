@@ -1,0 +1,2 @@
+# goscript
+scripting golang
