@@ -53,12 +53,6 @@ func BecomeScripts() {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to execute terminal command:%v", err.Error()))
 	}
-	if len(os.Args) > 0 {
-		err = os.Remove(os.Args[0])
-		if err != nil {
-			panic(fmt.Sprintf("Temporary file deletion exception:%v", err.Error()))
-		}
-	}
 	output, _ := cmd.Output()
 	io.Copy(os.Stdout, bytes.NewReader(output))
 	_ = cmd.Run()
