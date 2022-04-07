@@ -7,6 +7,7 @@ package consts
  * Time: 14:41
  */
 
-const TempFile = `ruohuai.go`
-
-const NewLine byte = 10
+const (
+	EnableScriptHead  = "#!/usr/bin/env goscript\npackage main\n"
+	DisableScriptHead = "/***goscript disabled**/"
+)

@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/self-denying/goscript/consts"
@@ -21,35 +20,26 @@ func BecomeScripts() {
 	if len(os.Args) != 2 {
 		panic("Please enter the name of the file to execute")
 	}
-	inputFileHandle, err := os.Open(os.Args[1])
+	filename := os.Args[1]
+	inputFileHandle, err := os.OpenFile(filename, os.O_RDWR, os.ModePerm)
 	if err != nil {
 		panic(fmt.Sprintf("Open file for execution exception:%v", err.Error()))
 	}
-	defer inputFileHandle.Close()
-	reader := bufio.NewReader(inputFileHandle)
-	tempFileHandle, err := os.Create(consts.TempFile)
+	defer func() {
+		_, err = inputFileHandle.WriteAt([]byte(consts.EnableScriptHead), 0)
+		if err != nil {
+			panic(fmt.Sprintf("Rewrite %v :%v", filename, err.Error()))
+		}
+		err = inputFileHandle.Close()
+		if err != nil {
+			panic(fmt.Sprintf("Failed to close file %v :%v", filename, err.Error()))
+		}
+	}()
+	_, err = inputFileHandle.WriteAt([]byte(consts.DisableScriptHead), 0)
 	if err != nil {
-		panic(fmt.Sprintf("Create temp file exception:%v", err.Error()))
+		panic(fmt.Sprintf("Rewrite %v :%v", filename, err.Error()))
 	}
-	defer os.Remove(consts.TempFile)
-	defer tempFileHandle.Close()
-	var lineNumber int
-	for {
-		lb, _, err := reader.ReadLine()
-		if err == io.EOF {
-			break
-		}
-		if lineNumber == 1 {
-			lb = append(lb, consts.NewLine)
-			_, err := tempFileHandle.Write(lb)
-			if err != nil {
-				panic(fmt.Sprintf("write temp file exception:%v", err.Error()))
-			}
-		} else {
-			lineNumber++
-		}
-	}
-	cmd := exec.Command("go", "run", consts.TempFile)
+	cmd := exec.Command("go", "run", filename)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to execute terminal command:%v", err.Error()))
 	}
